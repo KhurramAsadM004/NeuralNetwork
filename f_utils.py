@@ -121,7 +121,7 @@ def bce(self, y, batch_target):
     loss = -np.mean(t * np.log(y + eps) + (1-t) * np.log((1-y) + eps), axis=0) #mean binary cross-entropy loss for binary classification
     return loss
 
-def save_model_details(self):
+def save_model(self):
     model_details = {
     'layer_dim': self.num_neurons,
     'activations': self.activations_func,
@@ -144,7 +144,7 @@ def save_model_details(self):
     np.save(self.weights_filename, self.parameters)
     
         
-def load_model_details(self):
+def load_model(self):
     with open(self.arch_filename, 'r') as json_file:
         model_details = json.load(json_file)
         
