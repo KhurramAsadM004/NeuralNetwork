@@ -28,7 +28,7 @@ def tanh(a):
     'a' is the pre-activation value of the neuron.
     'z' is the output after applying the tanh activation function.    
     """
-    z = '''ADD CODE HERE'''
+    z = (np.exp(a) - np.exp(-a)) / (np.exp(a) + np.exp(-a))
     return z
 
 def relu(a):
@@ -37,7 +37,7 @@ def relu(a):
     'a' is the pre-activation value of the neuron.
     'z' is the output after applying the relu activation function.    
     """
-    z = '''ADD CODE HERE'''
+    z = np.where(a > 0, a, 0)
     return z
   
 
@@ -47,7 +47,7 @@ def lrelu(a, k=0.01):
     'a' is the pre-activation value of the neuron.
     'z' is the output after applying the lrelu activation function.    
     """
-    z = '''ADD CODE HERE'''
+    z = np.where(a > 0, a, a * k)
     return z
 
 def identity(a):
@@ -58,7 +58,7 @@ def sigmoid_derivative(z):
     Computes the derivative of the sigmoid function element-wise on 'z'.   
     'hprime' contains sigmoid function derivative values.    
     """
-    hprime = '''ADD CODE HERE'''
+    hprime = z * (1 - z)
     return hprime
 
 def tanh_derivative(z):
@@ -66,7 +66,7 @@ def tanh_derivative(z):
     Computes the derivative of the hyperbolic tangent (tanh) function element-wise on 'z'. 
     'hprime' contains tanh function derivative values. 
     """
-    hprime = '''ADD CODE HERE'''
+    hprime = 1 - (z**2)
     return hprime
 
 def relu_derivative(z): 
@@ -74,7 +74,7 @@ def relu_derivative(z):
     Computes the derivative of the rectified linear unit (ReLU) function element-wise on 'z'.
     'hprime' contains relu function derivative values. 
     """
-    hprime = '''ADD CODE HERE'''
+    hprime = np.where(z > 0, 1, 0)
     return hprime
 
 def lrelu_derivative(z, k=0.01): 
@@ -83,7 +83,7 @@ def lrelu_derivative(z, k=0.01):
     with a given slope 'k'.   
     'hprime' contains lrelu function derivative values. 
     """    
-    hprime = '''ADD CODE HERE'''
+    hprime = np.where(z > 0, 1, k)
     return hprime
 
 def identity_derivative(z):
@@ -91,9 +91,9 @@ def identity_derivative(z):
 
 
 def softmax(a):
-    max_a = '''ADD CODE HERE''' #compute maximum of pre-activations in a (1 max per sample if using mini-batches)
-    a_exp = '''ADD CODE HERE''' #exponentials of pre-activations after subtracting maximum
-    a_sum = '''ADD CODE HERE''' #sum of exponentials
+    max_a = np.amax(a, axis=0) #compute maximum of pre-activations in a (1 max per sample if using mini-batches)
+    a_exp = np.exp(a - max_a) #exponentials of pre-activations after subtracting maximum
+    a_sum = np.sum(a_exp, axis=0) + 1e-9 #sum of exponentials
     z = np.divide(a_exp, a_sum) #softmax results
     return z
 
@@ -108,16 +108,17 @@ def initialize_adam(self) :
     return m, v
 
 def mse(self, y, batch_target):
-    loss = '''ADD CODE HERE''' #mean squared loss for regression
+    loss = np.mean(np.square(y - batch_target)) #mean squared loss for regression
     return loss
 
 def mce(self, y, batch_target):
-    loss = '''ADD CODE HERE''' #mean multiclass cross-entropy loss for multiclass classification
+    eps = 1e-9
+    loss = -((1/y.shape[1]) * np.sum(np.sum(batch_target * np.log(y + eps)))) #mean multiclass cross-entropy loss for multiclass classification
     return loss
 
 def bce(self, y, batch_target):
     eps = 1e-9
-    loss = '''ADD CODE HERE''' #mean binary cross-entropy loss for binary classification
+    loss = -np.mean(t * np.log(y + eps) + (1-t) * np.log((1-y) + eps), axis=0) #mean binary cross-entropy loss for binary classification
     return loss
 
 def save_model_details(self):
@@ -135,12 +136,12 @@ def save_model_details(self):
     }
     # open a file and use the json.dump method to save model details 
     self.arch_filename = self.weights_save_dir+self.optimizer+'_model.json'
-    with open('''ADD CODE HERE''') as json_file:
-        json.dump('''ADD CODE HERE''')
+    with open(self.arch_filename, "w") as json_file:
+        json.dump(model_details, json_file)
 
     # save model weights as a numpy array in a .npy file
     self.weights_filename = self.weights_save_dir+self.optimizer+'_model.npy'
-    np.save('''ADD CODE HERE''')
+    np.save(self.weights_filename, self.parameters)
     
         
 def load_model_details(self):

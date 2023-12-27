@@ -21,7 +21,7 @@ def cal_numerical_gradient(self, l, m, n, train_X, train_t, eps):
     self.fprop(train_X)                         # Perform forward propagation 
     lminus = self.calculate_loss(train_t)       # Calculate the loss (lminus) with the perturbed weight
     
-    Numerical_grad = '''ADD CODE HERE''' # Calculate the numerical gradient approximation
+    Numerical_grad = (lplus - lminus) / (2 * eps) # Calculate the numerical gradient approximation
     
     self.parameters['W%s' % l][m][n] += eps # Revert weight to its original value
    
@@ -44,7 +44,7 @@ def check_gradients(self, train_X, train_t):
             for n in range(0, self.num_neurons[l-1]):   
                 
                 # Retrieve the analytical gradient of weight n of neuron m in layer l
-                Analytical_grad = '''ADD CODE HERE'''
+                Analytical_grad = self.grads['dW%s' % l][m][n]
                 
                 # Calculate the numerical gradient of weight n of neuron m in layer l
                 Numerical_grad =  cal_numerical_gradient(self, l, m, n, train_X, train_t, eps)

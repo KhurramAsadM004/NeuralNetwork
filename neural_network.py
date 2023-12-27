@@ -122,17 +122,17 @@ class NeuralNetwork():
        # Iterate over each layer
        for l in range(1, self.num_layers+1):
            # Retrieve the weights and biases for the current layer
-           W = '''ADD CODE HERE'''
-           b = '''ADD CODE HERE'''
+           W = self.parameters[f'W{l}']
+           b = self.parameters[f'b{l}']
            
            # Retrieve the function in f_utils corresponding to the string in self.activations_func[l]
            activation_func = getattr(f_utils,self.activations_func[l])
            
            # Retrieve the output of the previous layer
-           x = '''ADD CODE HERE'''
+           x = self.net['z%s' % (l - 1)]
            
            # Compute the pre-activation value a = Wx+b
-           a = '''ADD CODE HERE'''
+           a = np.dot(W, x) + b
            
            # Apply the activation function
            z = activation_func(a)
@@ -158,10 +158,10 @@ class NeuralNetwork():
         if self.optimizer == 'sgd':                    
             for l in range(1, self.num_layers+1): # Iterate over each layer
                 # Update the weights of the current layer
-                self.parameters['W%s' % l] -= '''ADD CODE HERE'''
+                self.parameters['W%s' % l] -= self.learning_rate*self.grads['dW%s' % l]
                 
                 # Update the biases of the current layer
-                self.parameters['b%s' % l] -= '''ADD CODE HERE'''
+                self.parameters['b%s' % l] -= self.learning_rate*self.grads['db%s' % l]
           
         elif self.optimizer == 'adam':
             t = t+1
@@ -170,24 +170,24 @@ class NeuralNetwork():
                 Implement the while-loop in Algorithm 1 of https://arxiv.org/pdf/1412.6980.pdf
                 '''
                 # Moving average of the gradients: m = beta1*m + (1-beta1)*dL/dw
-                self.m["dW%s" % l] = self.beta1*self.m["dW%s" % l] + '''ADD CODE HERE'''   #for weights
-                self.m["db%s" % l] = '''ADD CODE HERE'''    #for biases
+                self.m["dW%s" % l] = self.beta1*self.m["dW%s" % l] + (1-self.beta1)*self.grads['dW%s' % l]   #for weights
+                self.m["db%s" % l] = self.beta1*self.m["db%s" % l] + (1-self.beta1)*self.grads['db%s' % l]    #for biases
 
                 # Compute bias-corrected first moment estimate: m_corrected = m / (1-beta1^t)
-                m_corrected_W = '''ADD CODE HERE'''    #for weights
-                m_corrected_b = '''ADD CODE HERE'''    #for biases
+                m_corrected_W = self.m["dW%s" % l] / (1-self.beta1**t)    #for weights
+                m_corrected_b = self.m["db%s" % l] / (1-self.beta1**t)    #for biases
       
                 # Moving average of the squared gradients: v = beta2*v + (1-beta2)*(dL/dw)^2
-                self.v["dW%s" % l] = '''ADD CODE HERE'''    #for weights
-                self.v["db%s" % l] = '''ADD CODE HERE'''    #for biases
+                self.v["dW%s" % l] = self.beta2*self.v["dW%s" % l] + (1-self.beta2)*(self.grads['dW%s' % l]**2)    #for weights
+                self.v["db%s" % l] = self.beta2*self.v["db%s" % l] + (1-self.beta2)*(self.grads['db%s' % l]**2)    #for biases
        
                 # Compute bias-corrected second moment estimate: v_corrected = v / (1-beta2^t)
-                v_corrected_W = '''ADD CODE HERE'''    #for weights
-                v_corrected_b = '''ADD CODE HERE'''    #for biases
+                v_corrected_W = self.v["dW%s" % l] / (1-self.beta2**t)    #for weights
+                v_corrected_b = self.v["db%s" % l] / (1-self.beta2**t)    #for biases
 
                 # Update parameters: w = w - alpha * m_corrected/(sqrt(v_corrected)+eps)
-                self.parameters["W%s" % l] = '''ADD CODE HERE'''    #for weights
-                self.parameters["b%s" % l] = '''ADD CODE HERE'''    #for biases
+                self.parameters["W%s" % l] = self.parameters["W%s" % l] - self.alpha * m_corrected_W/(np.sqrt(v_corrected_W) + self.epsilon)    #for weights
+                self.parameters["b%s" % l] = self.parameters["b%s" % l] - self.alpha * m_corrected_b/(np.sqrt(v_corrected_b) + self.epsilon)    #for biases
 
 
            
@@ -196,23 +196,23 @@ class NeuralNetwork():
         batch_size = batch_target[0].shape
         
         # Retrieve output of the last layer of the neural network
-        y = '''ADD CODE HERE'''
+        y = self.net['z%s' % (self.num_layers)]
         
         # Compute delta_k values for these output layer neurons
-        delta_k = '''ADD CODE HERE'''
+        delta_k = y - batch_target
         
         # Retrieve outputs of previous layer. These are the inputs to the output layer.
-        z = '''ADD CODE HERE'''
+        z = self.net['z%s' % (self.num_layers - 1)]
         
         # Compute gradients of weights via delta_k x input
         # If using MSE loss, do not forget to take mean over the mini-batch
         # Size of dW should be the same as size of the weight matrix W of the output layer
-        dW = '''ADD CODE HERE'''
+        dW = np.dot(delta_k, z.T)/batch_size
         
         # Compute gradients of biases via delta_k x 1
         # If using MSE loss, do not forget to take mean over the mini-batch
         # Size of db should be the same as the size of the bias vector b of the output layer
-        db = '''ADD CODE HERE'''
+        db = np.sum(delta_k, axis=1, keepdims=True)/batch_size
         
         # Store gradients for the output layer in self.grads dictionary
         self.grads['dW%s' % str(self.num_layers)] = dW 
@@ -230,21 +230,21 @@ class NeuralNetwork():
             hprime = activation_derivative_func(z);
                        
             # Compute delta values for current layer using the back-propagation equation
-            delta_j = np.multiply(hprime, np.dot('''ADD CODE HERE'''))
+            delta_j = np.multiply(hprime, np.dot(self.parameters['W%s' % (l + 1)].T, self.grads['delta%s' % (l + 1)]))
             
             # Retrieve outputs of previous layer
             # save them in z for this as well as the next iteration
-            z = '''ADD CODE HERE'''
+            z = self.net['z%s' % (l - 1)]
             
             # Compute gradients of weights via delta_j x input
             # If using MSE loss, do not forget to take mean over the mini-batch
             # Size of dW should be the same as size of the weight matrix W of layer l
-            dW =  '''ADD CODE HERE'''
+            dW = np.dot(delta_j, z.T)/batch_size
             
             # Compute gradients of biases via delta_j x 1
             # If using MSE loss, do not forget to take mean over the mini-batch
             # Size of db should be the same as size of the bias vector b of layer l
-            db =  '''ADD CODE HERE'''
+            db = np.sum(delta_j, axis=1, keepdims=True)/batch_size
             
             # Store gradients for current layer in self.grads dictionary
             self.grads['dW%s' % l] = dW
@@ -401,12 +401,12 @@ class NeuralNetwork():
 
                 # Update the count and confusion matrix based on correct and incorrect predictions
                 # Update appropriate entry of confusion matrix based on predicted and true class
-                confusion_matrix['''ADD CODE HERE'''] += 1
+                confusion_matrix[y, t] += 1
 
             
             # Calculate the accuracy 
-            number_of_correct_predictions = '''ADD CODE HERE''' #HINT: Diagonal of confusion matrix
-            total_predictions = '''ADD CODE HERE'''
+            number_of_correct_predictions = np.trace(confusion_matrix) #HINT: Diagonal of confusion matrix
+            total_predictions = confusion_matrix.sum(axis=1).sum()
             accuracy = (number_of_correct_predictions/total_predictions)*100
             
             # Return the calculated accuracy and the confusion matrix
