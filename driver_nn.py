@@ -20,6 +20,7 @@ parser.add_argument('--convergence_threshold', dest='convergence_threshold', typ
 parser.add_argument('--mode', dest='mode', type=str, default='test', choices=['train', 'test'], help='')
 parser.add_argument('--weights_save_dir', dest='weights_save_dir', type=str, default='', help='path')
 parser.add_argument('--arch_file', dest='arch_file', type=str, default='model_details.json', help='json file')
+parser.add_argument('--dataset', dest='dataset', type=str, default='mnist', help='data set')
 parser.add_argument('--weights_file', dest='weights_file', type=str, default='model_weights.npy', help='npy file')
 parser.add_argument('--data_dir', dest='data_dir', type=str, default='../Data/', help='')
 args = parser.parse_args()
